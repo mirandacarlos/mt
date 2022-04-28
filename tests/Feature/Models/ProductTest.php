@@ -3,6 +3,8 @@
 namespace Tests\Feature\Models;
 
 use App\Models\Product;
+use App\Services\DiscountService;
+use App\Services\IdToStringService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -80,8 +82,8 @@ class ProductTest extends TestCase
      */
     public function test_category_and_price_filter()
     {
-        $response = $this->get('/products?priceLessThan=59001');
-        $response->assertJsonFragment(['original' => 59000]);
+        $response = $this->get('/products?priceLessThan=99000&category=boots');
+        $response->assertJsonCount(2);
     }
 
     /**
@@ -91,7 +93,9 @@ class ProductTest extends TestCase
      */
     public function test_id_to_string_service()
     {
-
+        $product = Product::where('sku', 1)->get();
+        $product = IdToStringService::idToString($product);
+        $this->assertEquals('000001', $product->get(0)->sku);
     }
 
     /**
@@ -101,6 +105,9 @@ class ProductTest extends TestCase
      */
     public function test_discount_service()
     {
+        $product = Product::where('sku', 1)->get();
+        $product = DiscountService::applyDiscount($product);
+        $this->assertEquals(62300, $product->get(0)->price->final);
     }
     
     /**
@@ -110,6 +117,9 @@ class ProductTest extends TestCase
      */
     public function test_pagination()
     {
+        Product::factory(7)->create();
+        $response = $this->get('/products?page=3');
+        $response->assertJsonCount(2);
     }
 
     /**
@@ -119,6 +129,23 @@ class ProductTest extends TestCase
      */
     public function test_15_percent_discount()
     {
+        $product = Product::find(3);
+        $product->category = 'sneakers';
+        $product->save();
+        $response = $this->get('/products');
+        $result = json_decode($response->content());
+        $this->assertEquals(60350, $result[2]->price->final);
+    }
+
+    /**
+     * Empty page.
+     *
+     * @return void
+     */
+    public function test_empty_page()
+    {
+        $response = $this->get('/products?page=4');
+        $response->assertJsonCount(0);
     }
 
     /**

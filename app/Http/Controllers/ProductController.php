@@ -22,7 +22,7 @@ class ProductController extends Controller
             $builder->where('category', $input);
         });
         $request->whenHas('priceLessThan', function($input) use ($builder){
-            $builder->where('price', '<', $input);
+            $builder->where('price', '<=', $input);
         });
         $products = $builder->paginate(5)->getCollection();
         $products = IdToStringService::idToString($products);

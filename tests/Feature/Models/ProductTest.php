@@ -71,7 +71,7 @@ class ProductTest extends TestCase
      */
     public function test_price_filter()
     {
-        $response = $this->get('/products?priceLessThan=5900');
+        $response = $this->get('/products?priceLessThan=59000');
         $response->assertJsonFragment(['original' => 59000]);
     }
 
@@ -82,7 +82,7 @@ class ProductTest extends TestCase
      */
     public function test_category_and_price_filter()
     {
-        $response = $this->get('/products?priceLessThan=99000&category=boots');
+        $response = $this->get('/products?priceLessThan=90000&category=boots');
         $response->assertJsonCount(2);
     }
 
